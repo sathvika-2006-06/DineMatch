@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Group - DineMatch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                🍽️ <span class="text-primary">DineMatch</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-body p-5">
+                        <h2 class="card-title text-center mb-4">Join Group</h2>
+                        
+                        <form id="joinGroupForm">
+                            <div class="mb-4">
+                                <label for="groupCode" class="form-label fw-bold">Group ID</label>
+                                <input type="text" class="form-control form-control-lg text-uppercase" id="groupCode" placeholder="e.g., DM4821" required>
+                                <small class="text-muted">Enter the Group ID shared by your friend</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="yourName" class="form-label fw-bold">Your Name</label>
+                                <input type="text" class="form-control form-control-lg" id="yourName" placeholder="e.g., Sathvika" required>
+                                <small class="text-muted">How should we call you?</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100">Join Group</button>
+                            <a href="/" class="btn btn-secondary btn-lg w-100 mt-2">Cancel</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('joinGroupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const groupCode = document.getElementById('groupCode').value.toUpperCase();
+            const yourName = document.getElementById('yourName').value;
+            
+            try {
+                const response = await fetch('/join_group', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({group_code: groupCode, name: yourName})
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = '/preferences';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error joining group: ' + error);
+            }
+        });
+    </script>
+</body>
+</html>

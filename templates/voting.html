@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting - DineMatch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                🍽️ <span class="text-primary">DineMatch</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <h2 class="text-center mb-2">🗳️ Vote for Your Favorite</h2>
+        <p class="text-center text-muted mb-5">Each member can vote once</p>
+
+        <div class="row g-3">
+            {% for member in members %}
+            <div class="col-md-6">
+                <div class="card member-vote-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">{{ member.name }}'s Choice</h5>
+                        
+                        <div id="member-{{ member.id }}-votes" class="vote-options">
+                            {% for restaurant in restaurants[:5] %}
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="member-{{ member.id }}" value="{{ restaurant.id }}" id="vote-{{ member.id }}-{{ restaurant.id }}">
+                                <label class="form-check-label w-100" for="vote-{{ member.id }}-{{ restaurant.id }}">
+                                    <strong>{{ restaurant.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">₹{{ restaurant.cost }} • ⭐ {{ restaurant.rating }}</small>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <button class="btn btn-primary btn-sm w-100 mt-3" onclick="submitVote({{ member.id }})">Submit Vote</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-5">
+            <h4 class="text-center mb-4">Current Vote Count</h4>
+            <div id="voteResults" class="row">
+                <!-- Vote results will be updated here -->
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <button class="btn btn-success btn-lg" onclick="window.location.href='/group/{{ group.id }}/result'">Finalize Result</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function submitVote(memberId) {
+            const selectedRadio = document.querySelector(`input[name="member-${memberId}"]:checked`);
+            if (!selectedRadio) {
+                alert('Please select a restaurant');
+                return;
+            }
+            
+            const restaurantId = selectedRadio.value;
+            
+            try {
+                const response = await fetch('/group/{{ group.id }}/vote', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({member_id: memberId, restaurant_id: restaurantId})
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Vote submitted!');
+                    updateVotes();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error submitting vote: ' + error);
+            }
+        }
+        
+        async function updateVotes() {
+            try {
+                const response = await fetch('/api/group/{{ group.id }}/votes');
+                const votes = await response.json();
+                
+                let html = '';
+                for (const [restaurant, count] of Object.entries(votes)) {
+                    html += `<div class="col-md-6 mb-3"><div class="card"><div class="card-body"><h6>${restaurant}</h6><p class="mb-0"><strong>${count} votes</strong></p></div></div></div>`;
+                }
+                document.getElementById('voteResults').innerHTML = html;
+            } catch (error) {
+                console.error('Error fetching votes:', error);
+            }
+        }
+        
+        // Update votes every 2 seconds
+        updateVotes();
+        setInterval(updateVotes, 2000);
+    </script>
+</body>
+</html>

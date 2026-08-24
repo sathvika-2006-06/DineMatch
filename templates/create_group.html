@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Group - DineMatch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                🍽️ <span class="text-primary">DineMatch</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-body p-5">
+                        <h2 class="card-title text-center mb-4">Create Group</h2>
+                        
+                        <form id="createGroupForm">
+                            <div class="mb-4">
+                                <label for="groupName" class="form-label fw-bold">Group Name</label>
+                                <input type="text" class="form-control form-control-lg" id="groupName" placeholder="e.g., Friends Dinner" required>
+                                <small class="text-muted">Name your group (max 100 characters)</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="memberCount" class="form-label fw-bold">Number of Members</label>
+                                <input type="number" class="form-control form-control-lg" id="memberCount" min="2" max="20" placeholder="e.g., 4" required>
+                                <small class="text-muted">How many people will join this group?</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100">Create Group</button>
+                            <a href="/" class="btn btn-secondary btn-lg w-100 mt-2">Cancel</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Group Created Successfully!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="mb-3" style="font-size: 3rem;">✅</div>
+                    <p>Your group has been created!</p>
+                    <div class="alert alert-info">
+                        <strong>Group ID: <span id="groupCodeDisplay"></span></strong>
+                    </div>
+                    <p class="text-muted">Share this ID with your friends to join the group.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/join_group'">Join Group</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('createGroupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const groupName = document.getElementById('groupName').value;
+            const memberCount = document.getElementById('memberCount').value;
+            
+            try {
+                const response = await fetch('/create_group', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({group_name: groupName, member_count: memberCount})
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('groupCodeDisplay').textContent = data.group_code;
+                    const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                    modal.show();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error creating group: ' + error);
+            }
+        });
+    </script>
+</body>
+</html>
